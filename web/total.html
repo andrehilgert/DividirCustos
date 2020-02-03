@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Totais</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    </head>
+    <body>
+        <div ><!--class="grid"-->
+            <ul id="lista"></ul>
+        </div>
+        <script  type="text/javascript">
+            window.onload = function () {
+                read();
+            };
+            
+            function read(){
+                var lista = document.querySelector('#lista'); debugger;
+                lista.innerHTML = '';
+                axios.get('/DividirCustos/rateio')
+                    .then(function (response) {
+                        console.log(response);
+                        var pessoas = response.data.pessoas;
+                        var ul = document.createElement('ul');
+                        for (var i = 0; i < pessoas.length; i++){
+                            var li = document.createElement('li');
+                            li.innerText = pessoas[i].nome + ' - R$ '+ pessoas[i].valor;
+                            ul.appendChild(li);
+                        }
+
+                        lista.appendChild(ul);
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                        if (error && error.response && error.response.data) {
+                            alert(error.response.data);
+                        }
+                    });
+            };
+        </script>
+    </body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Dividir Custos</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    </head>
+    <body><form id="campos">
+            <div id="dvCampos">
+                <input type="text" id="inpNome" placeholder="Nome" autofocus>
+                <input type="button" value="Adicionar" id="btnAdd" />
+                <input type="button" value="Limpar" id="btnClear" />
+                <input type="button" value="Definir Itens" id="btnDefItens" />
+            </div>
+        </form>
+        <div ><!--class="grid"-->
+            <ul id="lista"></ul>
+        </div>
+
+        <script  type="text/javascript">
+            window.onload = function () {
+                document.querySelector('#btnAdd').addEventListener('click', add);
+                document.querySelector('#btnClear').addEventListener('click', clear);
+                document.querySelector('#btnDefItens').addEventListener('click', defItens);
+                read();
+            };
+            
+            function add(){
+                const pessoa = document.querySelector('#inpNome').value;
+                axios.post('/DividirCustos/pessoas', {
+                        pessoa
+                    })
+                    .then(function (response) {
+                        console.log(response);
+                        read();
+                        document.querySelector('#inpNome').value = '';
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                        if (error && error.response && error.response.data) {
+                            alert(error.response.data);
+                        }
+                    });
+                    
+                document.querySelector('#inpNome').focus();
+            }
+
+            function clear(){
+                axios.delete('/DividirCustos/pessoas')
+                    .then(function (response) {
+                        console.log(response);
+                        read();
+                        document.querySelector('#inpNome').value = '';
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                        if (error && error.response && error.response.data) {
+                            alert(error.response.data);
+                        }
+                    });
+            }
+            
+            function defItens(){
+                location.href = location.origin + '/DividirCustos/definirItens.html';
+            }
+
+            function read(){
+                var lista = document.querySelector('#lista'); debugger;
+                lista.innerHTML = '';
+                axios.get('/DividirCustos/pessoas')
+                    .then(function (response) {
+                        console.log(response);
+                        var pessoas = response.data.pessoas;
+                        var ul = document.createElement('ul');
+                        for (var i = 0; i < pessoas.length; i++){
+                            var li = document.createElement('li');
+                            li.innerText = pessoas[i].nome;
+                            ul.appendChild(li);
+                        }
+
+                        lista.appendChild(ul);
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                        if (error && error.response && error.response.data) {
+                            alert(error.response.data);
+                        }
+                    });
+            };
+        </script>
+    </body>
+</html>

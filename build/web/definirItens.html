@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Definir Itens</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    </head>
+    <body>
+        <form id="campos">
+            <select id="pessoa" autofocus>
+            </select>
+            <input type="text" id="item" placeholder="Nome Item" />
+            <input type="number" id="valor" placeholder="Valor (R$)" step="0.01"/>
+            <input type="checkbox" id="ratear" value=""/> <label for="ratear">Ratear</label>
+            <input type="radio" id="rValor" name="rPerc" value="V" checked/><label for="rValor">Valor</label>
+            <input type="radio" id="rPerc" name="rPerc" value="P" /><label for="rPerc">Percentual</label>
+            <input type="button" value="Adicionar" id="btnAdd" />
+            <input type="button" value="Limpar Itens" id="btnClearItens" />
+            <input type="button" value="Totalizar Valores" id="btnTotalizar" />
+        </form>
+        <div ><!--class="grid"-->
+            <ul id="lista"></ul>
+        </div>
+
+        <script  type="text/javascript">
+            window.onload = function () {
+                axios.get('/DividirCustos/pessoas')
+                    .then(function (response) {
+                        console.log(response);
+                        var pessoas = response.data.pessoas;
+                        var select = document.querySelector('#pessoa');
+                        select.innerHTML = '';
+                        for (var i = 0; i < pessoas.length; i++) {
+                            var option = document.createElement('option');
+                            option.innerText = pessoas[i].nome;
+                            select.appendChild(option);
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                        if (error && error.response && error.response.data) {
+                            alert(error.response.data);
+                        }
+                    });
+                    
+                    document.querySelector('#btnAdd').addEventListener('click', add);
+                    document.querySelector('#btnClearItens').addEventListener('click', clearItens);
+                    document.querySelector('#btnTotalizar').addEventListener('click', totalizar);
+                    read();
+            };
+            function add(){
+                const pessoa = document.querySelector('#pessoa').value;
+                const nome = document.querySelector('#item').value;
+                const valor = document.querySelector('#valor').value;
+                const ratear = document.querySelector('#ratear').checked;
+                const percentual = getRadioValue('rPerc');
+                axios.post('/DividirCustos/itens', {
+                    pessoa,
+                    nome,
+                    valor,
+                    ratear,
+                    percentual
+                })
+                .then(function (response) {
+                    console.log(response);
+                    read();
+                    document.querySelector('#item').value = '';
+                    document.querySelector('#valor').value = '';
+                })
+                .catch(function (error) {
+                    console.log(error);
+                    if (error && error.response && error.response.data) {
+                        alert(error.response.data);
+                    }
+                });
+                
+                document.querySelector('#pessoa').focus();
+            }
+
+            function clearItens(){
+                axios.delete('/DividirCustos/itens')
+                    .then(function (response) {
+                        console.log(response);
+                        read();
+                        document.querySelector('#inpNome').value = '';
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                        if (error && error.response && error.response.data) {
+                            alert(error.response.data);
+                        }
+                    });
+            }
+            
+            function totalizar(){
+                location.href = location.origin + '/DividirCustos/total.html';
+            }
+
+            function read(){
+                var lista = document.querySelector('#lista'); debugger;
+                    lista.innerHTML = '';
+                axios.get('/DividirCustos/itens')
+                .then(function (response) {
+                    console.log(response);
+                    var pessoas = response.data.pessoas;
+                    var itensRateio = response.data.itensRateio;
+                    var ul = document.createElement('ul');
+                    var ulItens;
+                    for (var i = 0; i < pessoas.length; i++){
+                        ulItens = document.createElement('ul');
+                        var li = document.createElement('li');
+                        li.innerText = pessoas[i].nome;
+                        var itens = pessoas[i].itens;
+                        for (var j = 0; j < itens.length; j++){
+                            var liItens = document.createElement('li');
+                            var item = itens[j];
+                            var texto = item.nome + " - ";
+
+                            if(item.percentual){
+                                texto += item.valor + ' %'
+                            }else{
+                                texto += 'R$' + item.valor;
+                            }
+
+                            liItens.innerText = texto;
+                            ulItens.appendChild(liItens);
+                        }
+
+                        li.appendChild(ulItens);
+                        ul.appendChild(li);
+                    }
+
+                    var itensRateio = response.data.itensRateio;
+                    if(itensRateio.length > 0){
+                        var li = document.createElement('li');
+                        li.innerText = 'Ratear';
+                        ulItens = document.createElement('ul');
+                        for (var i = 0; i < itensRateio.length; i++){
+                            var liItens = document.createElement('li');
+                            var item = itensRateio[i];
+                            var texto = item.nome + " - ";
+
+                            if(item.percentual){
+                                texto += item.valor + ' %'
+                            }else{
+                                texto += 'R$ ' + item.valor;
+                            }
+
+                            liItens.innerText = texto;
+                            ulItens.appendChild(liItens);
+                        }
+                        li.appendChild(ulItens);
+                        ul.appendChild(li);
+                    }
+                    
+                    lista.appendChild(ul);
+                })
+                .catch(function (error) {
+                    console.log(error);
+                            if (error && error.response && error.response.data) {
+                    alert(error.response.data);
+                    }
+                });
+            };
+
+            function getRadioValue(radioName){
+                var radioButtons = document.getElementsByName(radioName);
+                for (var i = 0; i < radioButtons.length; i++)
+                {
+                    if (radioButtons[i].checked)
+                    {
+                        return radioButtons[i].value;
+                    }
+                }
+                return '';
+            }
+        </script>
+    </body>
+</html>
